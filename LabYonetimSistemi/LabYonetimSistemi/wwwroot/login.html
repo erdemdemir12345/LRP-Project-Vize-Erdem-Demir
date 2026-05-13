@@ -1,0 +1,161 @@
+﻿<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LRP | Sistem Girişi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 900px;
+            padding: 20px;
+        }
+
+        .portal-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .login-side {
+            padding: 40px;
+        }
+
+        .welcome-side {
+            background: #4e73df;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: #4e73df;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+            .btn-primary:hover {
+                background: #2e59d9;
+            }
+
+        .form-control {
+            border-radius: 10px;
+            padding: 12px;
+            border: 1px solid #e3e6f0;
+        }
+
+        .input-group-text {
+            background: #f8f9fc;
+            border-radius: 10px 0 0 10px;
+            border: 1px solid #e3e6f0;
+        }
+
+        .portal-badge {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-container">
+        <div class="row portal-card g-0">
+            <div class="col-md-5 welcome-side">
+                <i class="fas fa-laptop-code fa-4x mb-4"></i>
+                <h2 class="fw-bold">Lab Takip Sistemi</h2>
+                <p class="opacity-75">Laboratuvar yönetim ve bilgisayar envanter portalına hoş geldiniz.</p>
+            </div>
+
+            <div class="col-md-7 login-side">
+                <div class="mb-4">
+                    <span class="portal-badge text-primary">Sisteme Eriş</span>
+                    <h3 class="fw-bold text-dark">Giriş Yapın</h3>
+                </div>
+
+                <form id="loginForm">
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small fw-bold">Kullanıcı Adı / Öğrenci No</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-user text-muted"></i></span>
+                            <input type="text" id="userInput" class="form-control" placeholder="Kullanıcı adınızı girin" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label text-secondary small fw-bold">Şifre</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-lock text-muted"></i></span>
+                            <input type="password" id="passInput" class="form-control" placeholder="••••••••" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 mb-3 shadow">
+                        <i class="fas fa-sign-in-alt me-2"></i>Sisteme Giriş Yap
+                    </button>
+                </form>
+
+                <div class="text-center mt-3">
+                    <small class="text-muted">Sorun mu yaşıyorsunuz? <a href="#" class="text-decoration-none">Destek Alın</a></small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById("loginForm").onsubmit = async (e) => {
+            e.preventDefault();
+
+            const res = await fetch("/api/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    username: document.getElementById("userInput").value,
+                    password: document.getElementById("passInput").value
+                })
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                // Bilgileri tarayıcı hafızasına kaydet
+                localStorage.setItem("userRole", data.role);
+                localStorage.setItem("username", data.username);
+
+                // ROL KONTROLÜ: Kim nereye gidecek?
+                if (data.role === "Admin") {
+                    location.href = "/index.html"; // Admin Paneli
+                } else {
+                    location.href = "/student.html"; // Öğrenci Paneli
+                }
+            } else {
+                alert("Giriş Başarısız! Lütfen bilgilerinizi kontrol edin.");
+            }
+        };
+    </script>
+
+</body>
+</html>

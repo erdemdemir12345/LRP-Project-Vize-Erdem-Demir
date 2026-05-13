@@ -1,0 +1,103 @@
+﻿<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold"><i class="fas fa-user-plus me-2 text-primary"></i>Öğrenci Atama Sistemi</h3>
+    <button class="btn btn-primary shadow-sm" onclick="openStudentModal()">
+        <i class="fas fa-plus me-2"></i>Yeni Öğrenci Kaydet
+    </button>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="bg-light">
+                <tr>
+                    <th class="ps-4">No / Kullanıcı Adı</th>
+                    <th>Ad Soyad</th>
+                    <th>Sınıf</th>
+                    <th>Atanan PC (ID)</th>
+                </tr>
+            </thead>
+            <tbody id="studentTableBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="studentModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Öğrenci Kayıt Formu</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Öğrenci Numarası</label>
+                    <input type="text" id="sUser" class="form-control" placeholder="Örn: 241902012">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Ad Soyad</label>
+                    <input type="text" id="sName" class="form-control" placeholder="Örn: Erdem Demir">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-danger">Giriş Şifresi Belirle</label>
+                    <input type="password" id="sPass" class="form-control" placeholder="Öğrenci için bir şifre yazın">
+                </div>
+                <div class="row">
+                    <div class="col-6 mb-3">
+                        <label class="form-label small fw-bold">Sınıf</label>
+                        <select id="sGrade" class="form-select">
+                            <option value="1">1. Sınıf</option>
+                            <option value="2">2. Sınıf</option>
+                        </select>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <label class="form-label small fw-bold">PC Ata (ID)</label>
+                        <input type="number" id="sPc" class="form-control" placeholder="PC ID">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button class="btn btn-primary w-100" onclick="saveStudent()">Kaydı Tamamla ve Hesap Oluştur</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function getStudents() {
+        const res = await fetch("/api/ogrenciler");
+        const data = await res.json();
+        document.getElementById("studentTableBody").innerHTML = data.map(s => `
+            <tr>
+                <td class="ps-4 fw-bold">${s.username}</td>
+                <td>${s.fullName}</td>
+                <td>${s.grade}. Sınıf</td>
+                <td><span class="badge bg-info text-dark">PC ID: ${s.computerId}</span></td>
+            </tr>`).join("");
+    }
+
+    function openStudentModal() {
+        new bootstrap.Modal(document.getElementById('studentModal')).show();
+    }
+
+    async function saveStudent() {
+        const payload = {
+            fullName: document.getElementById("sName").value,
+            username: document.getElementById("sUser").value,
+            password: document.getElementById("sPass").value,
+            grade: parseInt(document.getElementById("sGrade").value),
+            computerId: parseInt(document.getElementById("sPc").value)
+        };
+
+        const res = await fetch("/api/ogrenci-ekle", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+            alert("Öğrenci kaydedildi ve giriş hesabı oluşturuldu!");
+            location.reload();
+        }
+    }
+    getStudents();
+</script>

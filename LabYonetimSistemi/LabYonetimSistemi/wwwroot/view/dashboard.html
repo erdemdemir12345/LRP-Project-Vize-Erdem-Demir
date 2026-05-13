@@ -1,0 +1,24 @@
+﻿<h2 class="mb-4">Sistem Özeti</h2>
+<div class="row g-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white p-3 shadow-sm border-0">
+            <h6>Laboratuvarlar</h6>
+            <h2 id="stat-labs">0</h2>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white p-3 shadow-sm border-0">
+            <h6>Bilgisayarlar</h6>
+            <h2 id="stat-pcs">0</h2>
+        </div>
+    </div>
+</div>
+
+<script>
+    (async () => {
+        const res = await fetch("/api/stats");
+        const data = await res.json();
+        document.getElementById("stat-labs").innerText = data.labCount;
+        document.getElementById("stat-pcs").innerText = data.pcCount;
+    })();
+</script>

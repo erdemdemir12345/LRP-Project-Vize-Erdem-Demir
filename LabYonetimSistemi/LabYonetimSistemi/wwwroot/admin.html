@@ -1,0 +1,132 @@
+﻿<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Lab Yönetim | Admin Paneli</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fc;
+        }
+
+        .sidebar {
+            min-height: 100vh;
+            background: #4e73df;
+            color: white;
+        }
+
+        .nav-link {
+            color: rgba(255,255,255,.8);
+        }
+
+            .nav-link:hover {
+                color: white;
+            }
+
+        .card {
+            border: none;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58,59,69,0.15);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container-fluid">
+        <div class="row">
+            <nav class="col-md-2 d-none d-md-block sidebar p-3">
+                <h4 class="text-center mb-4"><i class="fas fa-desktop me-2"></i>Lab-Takip</h4>
+                <ul class="nav flex-column">
+                    <li class="nav-item"><a class="nav-link active" href="#"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" onclick="showSection('labSection')"><i class="fas fa-door-open me-2"></i>Laboratuvarlar</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" onclick="showSection('pcSection')"><i class="fas fa-laptop me-2"></i>Bilgisayarlar</a></li>
+                </ul>
+            </nav>
+
+            <main class="col-md-10 ms-sm-auto px-md-4 py-4">
+                <div id="labSection" class="admin-section">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2>Laboratuvar Yönetimi</h2>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addLabModal">Yeni Lab Ekle</button>
+                    </div>
+                    <div class="card p-3">
+                        <table class="table table-hover">
+                            <thead><tr><th>ID</th><th>Lab Adı</th><th>PC Sayısı</th></tr></thead>
+                            <tbody id="labTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="pcSection" class="admin-section" style="display:none;">
+                    <h2>Bilgisayar Tanımlama</h2>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addLabModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Yeni Lab Kaydı</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" id="newLabName" class="form-control" placeholder="Lab Adı (Örn: Lab-B)">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+                    <button type="button" class="btn btn-primary" onclick="saveLab()">Kaydet</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+
+        window.onload = () => {
+            const role = localStorage.getItem("userRole");
+            // Eğer rol Admin değilse login'e geri gönder
+            if (role !== "Admin") {
+                alert("Bu sayfaya erişim yetkiniz yok!");
+                location.href = "/login.html";
+                return;
+            }
+            loadPage('/view/dashboard.html');
+        };
+    async function getLabs() {
+        const res = await fetch("/api/labs");
+        const labs = await res.json();
+        const tbody = document.getElementById("labTableBody");
+        tbody.innerHTML = labs.map(l => `
+            <tr>
+                <td>${l.id}</td>
+                <td>${l.name}</td>
+                <td>${l.computers ? l.computers.length : 0}</td>
+            </tr>
+        `).join("");
+    }
+
+    async function saveLab() {
+        const name = document.getElementById("newLabName").value;
+        const res = await fetch("/api/admin/labs", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ name: name })
+        });
+        if(res.ok) {
+            alert("Lab başarıyla eklendi!");
+            location.reload(); // Sayfayı yenile
+        }
+    }
+
+    function showSection(id) {
+        document.querySelectorAll('.admin-section').forEach(s => s.style.display = 'none');
+        document.getElementById(id).style.display = 'block';
+    }
+
+    getLabs();
+    </script>
+</body>
+</html>

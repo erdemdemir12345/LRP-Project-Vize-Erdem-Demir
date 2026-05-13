@@ -1,0 +1,102 @@
+﻿<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold"><i class="fas fa-door-open me-2 text-primary"></i>Laboratuvar Yönetimi</h3>
+    <button class="btn btn-primary shadow-sm" onclick="openModal()">
+        <i class="fas fa-plus me-2"></i>Yeni Lab Tanımla
+    </button>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="bg-light">
+                <tr>
+                    <th class="ps-4">ID</th>
+                    <th>Laboratuvar Adı</th>
+                    <th class="text-end pe-4">İşlemler</th>
+                </tr>
+            </thead>
+            <tbody id="labTableBody">
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="labModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Laboratuvar Formu</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <input type="hidden" id="labId">
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-secondary">Laboratuvar Türü</label>
+                    <select id="labName" class="form-select form-select-lg">
+                        <option value="Grafik Lab">Grafik Laboratuvarı</option>
+                        <option value="Pc lab">PC Laboratuvarı</option>
+                        <option value="Ağ lab">Ağ Laboratuvarı</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button class="btn btn-light" data-bs-dismiss="modal">İptal</button>
+                <button class="btn btn-primary px-4" onclick="saveLab()">Kaydet</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function getLabs() {
+        const res = await fetch("/api/admin/labs");
+        const labs = await res.json();
+        document.getElementById("labTableBody").innerHTML = labs.map(l => `
+            <tr>
+                <td class="ps-4 text-secondary">#${l.id}</td>
+                <td class="fw-semibold">${l.name}</td>
+                <td class="text-end pe-4">
+                    <button class="btn btn-sm btn-outline-warning me-2" onclick="editLab(${l.id},'${l.name}')">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteLab(${l.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>`).join("");
+    }
+
+    function openModal() {
+        document.getElementById("labId").value = "";
+        new bootstrap.Modal(document.getElementById('labModal')).show();
+    }
+
+    function editLab(id, name) {
+        document.getElementById("labId").value = id;
+        document.getElementById("labName").value = name;
+        new bootstrap.Modal(document.getElementById('labModal')).show();
+    }
+
+    async function saveLab() {
+        const id = document.getElementById("labId").value;
+        const name = document.getElementById("labName").value;
+        const method = id ? "PUT" : "POST";
+        const url = id ? `/api/admin/labs/${id}` : "/api/admin/labs";
+
+        await fetch(url, {
+            method: method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name: name })
+        });
+        bootstrap.Modal.getInstance(document.getElementById('labModal')).hide();
+        getLabs();
+    }
+
+    async function deleteLab(id) {
+        if (confirm("Bu laboratuvarı silmek istediğinize emin misiniz?")) {
+            await fetch("/api/admin/labs/" + id, { method: "DELETE" });
+            getLabs();
+        }
+    }
+    getLabs();
+</script>
